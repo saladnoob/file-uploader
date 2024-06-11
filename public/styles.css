@@ -1,11 +1,18 @@
 body {
-  font-family: sans-serif;
-  margin: 2rem;
+  font-family: Arial, sans-serif; /* Similar to YouTube's font */
+  margin: 0; /* Remove default margin */
+  background-color: #f0f0f0; /* Light gray background */
+  display: flex; /* Use flexbox for layout */
+  justify-content: center; /* Center content horizontally */
+  align-items: center; /* Center content vertically */
+  min-height: 100vh; /* Set minimum height for full viewport */
 }
 
 h1 {
   text-align: center;
-  margin-bottom: 1rem;
+  color: #000; /* Text color black */
+  font-size: 2rem; /* Larger font size for heading */
+  margin-bottom: 1rem; /* Add some space below the heading */
 }
 
 form {
@@ -13,9 +20,15 @@ form {
   flex-direction: column;
   align-items: center;
   gap: 1rem;
+  background-color: #fff; /* Form background white */
+  padding: 2rem; /* Add padding for spacing */
+  border: 1px solid #ddd; /* Add a thin border */
+  border-radius: 5px; /* Rounded corners */
+  max-width: 400px; /* Limit form width */
 }
 
 #upload-status {
   text-align: center;
   margin-top: 1rem;
+  color: #aaa; /* Text color lighter gray */
 }
