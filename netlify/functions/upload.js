@@ -1,33 +1,41 @@
-const formidable = require('formidable');
-const path = require('path');
-const fs = require('fs'); // For potential security checks (optional)
+const fs = require('fs'); // File system module
 
 exports.handler = async (event, context) => {
   if (event.httpMethod === 'POST') {
-    const form = new formidable.IncomingForm();
-    // Change upload directory to a temporary location within the function's environment
-    form.uploadDir = path.join(__dirname, '/tmp'); 
-    form.keepExtensions = true;
+    // Check if a file was uploaded
+    if (!event.body || !event.body.file) {
+      return {
+        statusCode: 400,
+        body: 'No file uploaded',
+      };
+    }
 
-    return new Promise((resolve, reject) => {
-      form.parse(event, (err, fields, files) => {
-        if (err) {
-          reject({ statusCode: 500, body: 'Error uploading file' });
-          return;
-        }
+    // Extract the uploaded file data
+    const fileData = Buffer.from(event.body.file, 'base64'); // Decode base64 data
+    const filename = 'uploaded_file.txt'; // Adjust filename as needed
 
-        const file = files.file;
-        // Consider adding basic security checks here (optional)
-        // ... (e.g., check allowed file types, prevent duplicate filenames)
+    // Create a folder for uploads (optional)
+    const uploadDir = './uploads'; // Optional directory for uploads
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir); // Create directory if it doesn't exist
+    }
 
-        const filePath = path.join(form.uploadDir, file.newFilename);
+    const filePath = path.join(uploadDir, filename); // Combine path with filename
 
-        resolve({
-          statusCode: 200,
-          body: JSON.stringify({ url: /uploads/${file.newFilename} }),
-        });
-      });
-    });
+    try {
+      // Write the uploaded file to the specified location
+      await fs.promises.writeFile(filePath, fileData);
+      return {
+        statusCode: 200,
+        body: 'File uploaded successfully!',
+      };
+    } catch (err) {
+      console.error('Error uploading file:', err);
+      return {
+        statusCode: 500,
+        body: 'Error uploading file',
+      };
+    }
   }
 
   return {
