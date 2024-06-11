@@ -35,8 +35,8 @@ exports.handler = async (event, context) => {
   const octokit = new Octokit({ auth: githubToken });
 
   // Get the owner and repo name from your Netlify site configuration
-  const owner = 'your-github-username'; // Replace with your username
-  const repo = 'your-repository-name'; // Replace with your repo name
+  const owner = 'saladnoob'; // Replace with your username
+  const repo = 'file-uploader'; // Replace with your repo name
 
   const content = fileData.toString('base64'); // Encode file content as base64
 
