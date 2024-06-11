@@ -1,45 +1,64 @@
-const fs = require('fs'); // File system module
+const fs = require('fs');
+const { Octokit } = require("@octokit/rest"); // GitHub API library
 
 exports.handler = async (event, context) => {
-  if (event.httpMethod === 'POST') {
-    // Check if a file was uploaded
-    if (!event.body || !event.body.file) {
-      return {
-        statusCode: 400,
-        body: 'No file uploaded',
-      };
-    }
-
-    // Extract the uploaded file data
-    const fileData = Buffer.from(event.body.file, 'base64'); // Decode base64 data
-    const filename = 'uploaded_file.txt'; // Adjust filename as needed
-
-    // Create a folder for uploads (optional)
-    const uploadDir = './uploads'; // Optional directory for uploads
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir); // Create directory if it doesn't exist
-    }
-
-    const filePath = path.join(uploadDir, filename); // Combine path with filename
-
-    try {
-      // Write the uploaded file to the specified location
-      await fs.promises.writeFile(filePath, fileData);
-      return {
-        statusCode: 200,
-        body: 'File uploaded successfully!',
-      };
-    } catch (err) {
-      console.error('Error uploading file:', err);
-      return {
-        statusCode: 500,
-        body: 'Error uploading file',
-      };
-    }
+  if (event.httpMethod !== 'POST') {
+    return {
+      statusCode: 405,
+      body: 'Method Not Allowed',
+    };
   }
 
-  return {
-    statusCode: 405,
-    body: 'Method Not Allowed',
-  };
+  // Check if a file was uploaded
+  if (!event.body || !event.body.file) {
+    return {
+      statusCode: 400,
+      body: 'No file uploaded',
+    };
+  }
+
+  // Extract the uploaded file data
+  const fileData = Buffer.from(event.body.file, 'base64');
+  const filename = 'uploaded_file.txt'; // Adjust filename as needed
+
+  // Optional: Create a personal access token for GitHub API access
+  // https://docs.github.com/en/developers/apps/building-oauth-apps/creating-an-oauth-app
+  const githubToken = process.env.GITHUB_TOKEN; // Replace with your token
+
+  if (!githubToken) {
+    return {
+      statusCode: 401,
+      body: 'Missing GitHub access token',
+    };
+  }
+
+  const octokit = new Octokit({ auth: githubToken });
+
+  // Get the owner and repo name from your Netlify site configuration
+  const owner = 'your-github-username'; // Replace with your username
+  const repo = 'your-repository-name'; // Replace with your repo name
+
+  const content = fileData.toString('base64'); // Encode file content as base64
+
+  try {
+    // Create or update the file content in the repository
+    const response = await octokit.repos.createOrUpdateFileContents({
+      owner,
+      repo,
+      path: filename,
+      message: 'Uploaded file from Netlify function',
+      content,
+    });
+
+    return {
+      statusCode: 200,
+      body: 'File uploaded successfully!',
+    };
+  } catch (error) {
+    console.error('Error uploading file:', error);
+    return {
+      statusCode: 500,
+      body: 'Error uploading file',
+    };
+  }
 };
