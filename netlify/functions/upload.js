@@ -1,33 +1,37 @@
 const formidable = require('formidable');
 const path = require('path');
-const fs = require('fs');
+const fs = require('fs'); // For potential security checks (optional)
 
 exports.handler = async (event, context) => {
-    if (event.httpMethod === 'POST') {
-        const form = new formidable.IncomingForm();
-        form.uploadDir = '/tmp';
-        form.keepExtensions = true;
+  if (event.httpMethod === 'POST') {
+    const form = new formidable.IncomingForm();
+    // Change upload directory to a temporary location within the function's environment
+    form.uploadDir = path.join(__dirname, '/tmp'); 
+    form.keepExtensions = true;
 
-        return new Promise((resolve, reject) => {
-            form.parse(event, (err, fields, files) => {
-                if (err) {
-                    reject({ statusCode: 500, body: 'Error uploading file' });
-                    return;
-                }
+    return new Promise((resolve, reject) => {
+      form.parse(event, (err, fields, files) => {
+        if (err) {
+          reject({ statusCode: 500, body: 'Error uploading file' });
+          return;
+        }
 
-                const file = files.file;
-                const filePath = path.join('/tmp', file.newFilename);
+        const file = files.file;
+        // Consider adding basic security checks here (optional)
+        // ... (e.g., check allowed file types, prevent duplicate filenames)
 
-                resolve({
-                    statusCode: 200,
-                    body: JSON.stringify({ url: `/uploads/${file.newFilename}` }),
-                });
-            });
+        const filePath = path.join(form.uploadDir, file.newFilename);
+
+        resolve({
+          statusCode: 200,
+          body: JSON.stringify({ url: /uploads/${file.newFilename} }),
         });
-    }
+      });
+    });
+  }
 
-    return {
-        statusCode: 405,
-        body: 'Method Not Allowed',
-    };
+  return {
+    statusCode: 405,
+    body: 'Method Not Allowed',
+  };
 };
