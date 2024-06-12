@@ -1,5 +1,5 @@
 const uploadForm = document.querySelector('form');
-const uploadStatus = document.getElementById('upload-status');
+const uploadStatus = documentgetElementById('upload-status');
 
 uploadForm.addEventListener('submit', async (event) => {
   event.preventDefault(); // Prevent default form submission
@@ -7,7 +7,7 @@ uploadForm.addEventListener('submit', async (event) => {
   const formData = new FormData(uploadForm); // Create FormData object
 
   try {
-    const response = await fetch('/.netlify/functions/upload', {
+    const response = await fetch('/.netlify/functions/store', {
       method: 'POST',
       body: formData,
     });
@@ -17,7 +17,7 @@ uploadForm.addEventListener('submit', async (event) => {
     }
 
     const data = await response.json(); // Parse JSON response (assuming success message)
-    uploadStatus.textContent = data.body; // Update upload status message
+    uploadStatus.textContent = data.message; // Update upload status message
   } catch (error) {
     console.error('Error uploading file:', error);
     uploadStatus.textContent = 'Error uploading file. Check the console for details.';
