@@ -1,5 +1,4 @@
-const fs = require('fs');
-const { Octokit } = require("@octokit/rest"); // GitHub API library
+const fs = require('fs/promises'); // Use promises for asynchronous file operations
 
 exports.handler = async (event, context) => {
   if (event.httpMethod !== 'POST') {
@@ -19,46 +18,21 @@ exports.handler = async (event, context) => {
 
   // Extract the uploaded file data
   const fileData = Buffer.from(event.body.file, 'base64');
-  const filename = 'uploaded_file.txt'; // Adjust filename as needed
 
-  // Optional: Create a personal access token for GitHub API access
-  // https://docs.github.com/en/developers/apps/building-oauth-apps/creating-an-oauth-app
-  const githubToken = process.env.GITHUB_TOKEN; // Replace with your token
+  // Define the upload directory within your site's public directory (replace with your desired location)
+  const uploadDir = 'public/uploads';
 
-  if (!githubToken) {
-    return {
-      statusCode: 401,
-      body: 'Missing GitHub access token',
-    };
-  }
+  // Create the upload directory if it doesn't exist
+  await fs.mkdir(uploadDir, { recursive: true }); // Create directory recursively
 
-  const octokit = new Octokit({ auth: githubToken });
+  // Generate a unique filename (optional)
+  const filename = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${event.body.file.name.split('.').pop()}`;
 
-  // Get the owner and repo name from your Netlify site configuration
-  const owner = 'saladnoob'; // Replace with your username
-  const repo = 'file-uploader'; // Replace with your repo name
+  // Save the uploaded file
+  await fs.writeFile(`${uploadDir}/${filename}`, fileData);
 
-  const content = fileData.toString('base64'); // Encode file content as base64
-
-  try {
-    // Create or update the file content in the repository
-    const response = await octokit.repos.createOrUpdateFileContents({
-      owner,
-      repo,
-      path: filename,
-      message: 'Uploaded file from Netlify function',
-      content,
-    });
-
-    return {
-      statusCode: 200,
-      body: 'File uploaded successfully!',
-    };
-  } catch (error) {
-    console.error('Error uploading file:', error);
-    return {
-      statusCode: 500,
-      body: 'Error uploading file',
-    };
-  }
+  return {
+    statusCode: 200,
+    body: 'File uploaded successfully!',
+  };
 };
