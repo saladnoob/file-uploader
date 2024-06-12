@@ -1,7 +1,6 @@
 const express = require('express');
 const formidable = require('formidable');
 const path = require('path');
-const fs = require('fs'); // For potential security checks
 
 const app = express();
 const PORT = 3000;
@@ -11,12 +10,13 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Handle file uploads with validation and security checks
+// Handle file uploads with size validation (no file type validation)
 app.post('/upload', (req, res) => {
   const form = new formidable.IncomingForm();
   form.uploadDir = path.join(__dirname, '/uploads');
   form.keepExtensions = true;
-  form.maxFileSize = 10 * 1024 * 1024; // Set a maximum file size (optional)
+  // Set a maximum file size of 5 GB
+  form.maxFileSize = 5 * 1024 * 1024 * 1024; 
 
   form.parse(req, (err, fields, files) => {
     if (err) {
@@ -26,17 +26,11 @@ app.post('/upload', (req, res) => {
 
     const file = files.file;
 
-    // Basic file validation (optional)
-    if (!file.mimetype.startsWith('image/')) {
-      return res.status(400).send('Only image files allowed!');
-    }
-
-    // Additional security checks (optional)
-    if (fs.existsSync(path.join(__dirname, '/uploads', file.newFilename))) {
-      return res.status(400).send('File with that name already exists!');
-    }
+    // **Security Consideration:** Perform server-side file type validation here using libraries like 'mime'
 
     const filePath = path.join(__dirname, '/uploads', file.newFilename);
+
+    // **Security Consideration:** Sanitize file name before saving
 
     // Send the link to the uploaded file
     res.send(<a href="/uploads/${file.newFilename}">Download File</a>);
@@ -47,5 +41,5 @@ app.post('/upload', (req, res) => {
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.listen(PORT, () => {
-  console.log(Server is running on http://localhost:${PORT});
+  console.log(`Server is running on http://localhost:${PORT}`);
 });
