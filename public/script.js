@@ -7,11 +7,10 @@ uploadForm.addEventListener('submit', async (event) => {
   const formData = new FormData(uploadForm); // Create FormData object
 
   try {
-    const response = await fetch('/.netlify/functions/store', {
-      method: 'POST',
-      body: formData,
-    });
-
+const response = await fetch('/.netlify/functions/store', {
+  method: 'POST',
+  body: formData,
+});
     if (!response.ok) {
       throw new Error(`Error uploading file: ${response.statusText} (Status Code: ${response.status})`);
     }
