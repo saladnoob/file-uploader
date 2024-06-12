@@ -13,7 +13,7 @@ uploadForm.addEventListener('submit', async (event) => {
     });
 
     if (!response.ok) {
-      throw new Error(Error uploading file: ${response.statusText});
+throw new Error(`Error uploading file: ${response.statusText} (Status Code: ${response.status})`);
     }
 
     const data = await response.json(); // Parse JSON response (assuming success message)
