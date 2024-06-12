@@ -1,5 +1,5 @@
 const uploadForm = document.querySelector('form');
-const uploadStatus = documentgetElementById('upload-status');
+const uploadStatus = document.getElementById('upload-status');
 
 uploadForm.addEventListener('submit', async (event) => {
   event.preventDefault(); // Prevent default form submission
