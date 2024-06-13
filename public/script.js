@@ -25,4 +25,3 @@ uploadForm.addEventListener('submit', async (event) => {
   } catch (error) {
     console.error('Error uploading file:', error);
     uploadStatus.textContent = 'Error uploading file. Check the console for details.';
-  }
