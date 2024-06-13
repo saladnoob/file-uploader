@@ -1,10 +1,27 @@
 const formidable = require('formidable');
-const fs = require('fs/promises'); // Use promises for asynchronous file operations
+const fs = require('fs/promises');
+const path = require('path');
 
 exports.handler = async (event, context) => {
+  if (event.httpMethod === 'OPTIONS') {
+    // Handle CORS preflight request
+    return {
+      statusCode: 200,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
+      },
+      body: JSON.stringify({ message: 'CORS preflight handled.' }),
+    };
+  }
+
   if (event.httpMethod !== 'POST') {
     return {
       statusCode: 405,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+      },
       body: 'Method Not Allowed',
     };
   }
@@ -13,7 +30,7 @@ exports.handler = async (event, context) => {
 
   try {
     const { fields, files } = await new Promise((resolve, reject) => {
-      form.parse(event.body, (err, fields, files) => {
+      form.parse(event, (err, fields, files) => {
         if (err) {
           reject(err);
         } else {
@@ -22,47 +39,51 @@ exports.handler = async (event, context) => {
       });
     });
 
-    // Check if a file was uploaded
     if (!files.file) {
       return {
         statusCode: 400,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+        },
         body: 'No file uploaded',
       };
     }
 
     const file = files.file;
 
-    // Define the upload directory within your site's public directory
-    const uploadDir = 'public/uploads';
+    const uploadDir = '/tmp/uploads'; // Use /tmp for Netlify Functions
 
-    // Create the upload directory if it doesn't exist
-    await fs.mkdir(uploadDir, { recursive: true }); // Create directory structure
+    await fs.mkdir(uploadDir, { recursive: true });
 
-    // Sanitize the file name (optional, light-touch security)
     const sanitizedFilename = file.originalFilename.replace(/[^\w.-]+/g, '_');
-
-    // Build the upload path
     const filePath = path.join(uploadDir, sanitizedFilename);
 
-    // Ensure file size is within acceptable limits (optional)
-    if (file.size > 10 * 1024 * 1024) { // 10 MB limit (adjust as needed)
+    if (file.size > 10 * 1024 * 1024) {
       return {
-        statusCode: 413, // Payload Too Large
+        statusCode: 413,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+        },
         body: 'File size exceeds limit (10 MB)',
       };
     }
 
-    // Move the uploaded file to the destination
-    await fs.rename(event.body.file.filepath, filePath);
+    await fs.rename(file.filepath, filePath);
 
     return {
       statusCode: 200,
-      body: 'File uploaded successfully!',
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+      },
+      body: JSON.stringify({ message: 'File uploaded successfully!' }),
     };
   } catch (error) {
     console.error('Error uploading file:', error);
     return {
       statusCode: 500,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+      },
       body: 'Internal Server Error',
     };
   }
