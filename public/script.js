@@ -8,13 +8,20 @@ uploadForm.addEventListener('submit', async (event) => {
 
   // Log the contents of the FormData object
   for (const [key, value] of formData.entries()) {
-    console.log(`${key}: ${value}`);
+    if (value instanceof File) {
+      console.log(`${key}: ${value.name}, ${value.size} bytes, ${value.type}`);
+    } else {
+      console.log(`${key}: ${value}`);
+    }
   }
 
   try {
     const response = await fetch('/.netlify/functions/upload', {
       method: 'POST',
       body: formData,
+      headers: {
+        'Accept': 'application/json',
+      },
     });
 
     console.log('Fetch response:', response); // Log the entire response object
