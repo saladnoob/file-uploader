@@ -4,8 +4,12 @@ const uploadStatus = document.getElementById('upload-status');
 uploadForm.addEventListener('submit', async (event) => {
   event.preventDefault(); // Prevent default form submission
 
-    const formData = new FormData(uploadForm); // Create FormData object
-      console.log('Form data:', formData); // Log the FormData object
+  const formData = new FormData(uploadForm); // Create FormData object
+
+  // Log the contents of the FormData object
+  for (const [key, value] of formData.entries()) {
+    console.log(`${key}: ${value}`);
+  }
 
   try {
     const response = await fetch('/.netlify/functions/upload', {
