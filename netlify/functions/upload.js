@@ -2,7 +2,7 @@ const formidable = require('formidable');
 const fs = require('fs/promises');
 const path = require('path');
 
-exports.handler = async (event, context) => {
+exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') {
     // Handle CORS preflight request
     return {
@@ -27,10 +27,18 @@ exports.handler = async (event, context) => {
   }
 
   const form = new formidable.IncomingForm();
+  
+  // formidable requires access to the raw body, which is not available by default in Netlify functions.
+  // We need to provide the body in a different way.
+  const buffer = Buffer.from(event.body, 'base64');
+  const req = new require('stream').Readable();
+  req._read = () => {};
+  req.push(buffer);
+  req.push(null);
 
   try {
     const { fields, files } = await new Promise((resolve, reject) => {
-      form.parse(event, (err, fields, files) => {
+      form.parse(req, (err, fields, files) => {
         if (err) {
           reject(err);
         } else {
@@ -50,7 +58,6 @@ exports.handler = async (event, context) => {
     }
 
     const file = files.file;
-
     const uploadDir = '/tmp/uploads'; // Use /tmp for Netlify Functions
 
     await fs.mkdir(uploadDir, { recursive: true });
