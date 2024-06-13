@@ -6,6 +6,8 @@ uploadForm.addEventListener('submit', async (event) => {
 
   const formData = new FormData(uploadForm); // Create FormData object
 
+  console.log('Form data:', formData); // Log the FormData object for inspection
+
   try {
     const response = await fetch('/.netlify/functions/upload', {
       method: 'POST',
@@ -13,6 +15,7 @@ uploadForm.addEventListener('submit', async (event) => {
     });
 
     console.log('Fetch response:', response); // Log the entire response object
+    console.log('Fetch response status:', response.status); // Log the status code
 
     if (!response.ok) {
       throw new Error(`Error uploading file: ${response.statusText} (Status Code: ${response.status})`);
