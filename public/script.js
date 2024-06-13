@@ -1,4 +1,4 @@
-const uploadForm = document.querySelector('form');
+const uploadForm = document.getElementById('uploadForm');
 const uploadStatus = document.getElementById('upload-status');
 
 uploadForm.addEventListener('submit', async (event) => {
@@ -7,8 +7,7 @@ uploadForm.addEventListener('submit', async (event) => {
   const formData = new FormData(uploadForm); // Create FormData object
 
   try {
-    // Update the path to match your function location:
-    const response = await fetch('/.netlify/functions/upload', { // Change to "/upload" if function is in netlify/functions
+    const response = await fetch('/.netlify/functions/upload', {
       method: 'POST',
       body: formData,
     });
