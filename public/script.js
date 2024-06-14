@@ -2,6 +2,7 @@ const uploadForm = document.getElementById('uploadForm');
 const uploadStatus = document.getElementById('upload-status');
 const downloadForm = document.getElementById('downloadForm');
 const downloadStatus = document.getElementById('download-status');
+const mainHeading = document.getElementById('main-heading');
 
 uploadForm.addEventListener('submit', async (event) => {
   event.preventDefault();
@@ -36,6 +37,11 @@ uploadForm.addEventListener('submit', async (event) => {
     console.log('Upload response data:', data);
 
     uploadStatus.textContent = data.message;
+    if (data.message === 'File uploaded successfully!') {
+      mainHeading.textContent = 'Download File';
+      downloadForm.style.display = 'block';
+      document.getElementById('filename').value = formData.get('file').name.replace(/[^\w.-]+/g, '_');
+    }
   } catch (error) {
     console.error('Error uploading file:', error);
     uploadStatus.textContent = 'Error uploading file. Check the console for details.';
