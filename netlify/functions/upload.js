@@ -27,25 +27,24 @@ exports.handler = async (event) => {
   }
 
   const form = new formidable.IncomingForm();
-  
-  // formidable requires access to the raw body, which is not available by default in Netlify functions.
-  // We need to provide the body in a different way.
-  const buffer = Buffer.from(event.body, 'base64');
-  const req = new require('stream').Readable();
-  req._read = () => {};
-  req.push(buffer);
-  req.push(null);
+  const uploadDir = '/tmp/uploads'; // Use /tmp for Netlify Functions
+
+  // Create a promise to handle form parsing
+  const formDataPromise = new Promise((resolve, reject) => {
+    form.parse(event, (err, fields, files) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve({ fields, files });
+      }
+    });
+  });
 
   try {
-    const { fields, files } = await new Promise((resolve, reject) => {
-      form.parse(req, (err, fields, files) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve({ fields, files });
-        }
-      });
-    });
+    // Ensure the upload directory exists
+    await fs.mkdir(uploadDir, { recursive: true });
+
+    const { fields, files } = await formDataPromise;
 
     if (!files.file) {
       return {
@@ -58,10 +57,6 @@ exports.handler = async (event) => {
     }
 
     const file = files.file;
-    const uploadDir = '/tmp/uploads'; // Use /tmp for Netlify Functions
-
-    await fs.mkdir(uploadDir, { recursive: true });
-
     const sanitizedFilename = file.originalFilename.replace(/[^\w.-]+/g, '_');
     const filePath = path.join(uploadDir, sanitizedFilename);
 
