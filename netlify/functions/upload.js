@@ -3,6 +3,8 @@ const fs = require('fs/promises');
 const path = require('path');
 
 exports.handler = async (event) => {
+  console.log('Received event:', JSON.stringify(event)); // Log the event details
+
   if (event.httpMethod === 'OPTIONS') {
     // Handle CORS preflight request
     return {
@@ -47,6 +49,7 @@ exports.handler = async (event) => {
     const { fields, files } = await formDataPromise;
 
     if (!files.file) {
+      console.log('No file uploaded');
       return {
         statusCode: 400,
         headers: {
@@ -57,10 +60,12 @@ exports.handler = async (event) => {
     }
 
     const file = files.file;
+    console.log('Uploaded File:', file); // Log the file details
     const sanitizedFilename = file.originalFilename.replace(/[^\w.-]+/g, '_');
     const filePath = path.join(uploadDir, sanitizedFilename);
 
     if (file.size > 10 * 1024 * 1024) {
+      console.log('File size exceeds limit');
       return {
         statusCode: 413,
         headers: {
@@ -71,6 +76,7 @@ exports.handler = async (event) => {
     }
 
     await fs.rename(file.filepath, filePath);
+    console.log('File saved to', filePath);
 
     return {
       statusCode: 200,
