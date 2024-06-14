@@ -1,12 +1,13 @@
 const uploadForm = document.getElementById('uploadForm');
 const uploadStatus = document.getElementById('upload-status');
+const downloadForm = document.getElementById('downloadForm');
+const downloadStatus = document.getElementById('download-status');
 
 uploadForm.addEventListener('submit', async (event) => {
-  event.preventDefault(); // Prevent default form submission
+  event.preventDefault();
 
-  const formData = new FormData(uploadForm); // Create FormData object
+  const formData = new FormData(uploadForm);
 
-  // Log the contents of the FormData object
   for (const [key, value] of formData.entries()) {
     if (value instanceof File) {
       console.log(`${key}: ${value.name}, ${value.size} bytes, ${value.type}`);
@@ -24,19 +25,55 @@ uploadForm.addEventListener('submit', async (event) => {
       },
     });
 
-    console.log('Fetch response:', response); // Log the entire response object
-    console.log('Fetch response status:', response.status); // Log the status code
+    console.log('Fetch response:', response);
+    console.log('Fetch response status:', response.status);
 
     if (!response.ok) {
       throw new Error(`Error uploading file: ${response.statusText} (Status Code: ${response.status})`);
     }
 
-    const data = await response.json(); // Parse JSON response (assuming success message)
-    console.log('Upload response data:', data); // Log the parsed JSON data
+    const data = await response.json();
+    console.log('Upload response data:', data);
 
-    uploadStatus.textContent = data.message; // Update upload status message
+    uploadStatus.textContent = data.message;
   } catch (error) {
     console.error('Error uploading file:', error);
     uploadStatus.textContent = 'Error uploading file. Check the console for details.';
+  }
+});
+
+downloadForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+
+  const filename = document.getElementById('filename').value;
+
+  if (!filename) {
+    downloadStatus.textContent = 'Filename is required';
+    return;
+  }
+
+  try {
+    const response = await fetch(`/.netlify/functions/download?filename=${filename}`);
+
+    console.log('Fetch response:', response);
+    console.log('Fetch response status:', response.status);
+
+    if (!response.ok) {
+      throw new Error(`Error downloading file: ${response.statusText} (Status Code: ${response.status})`);
+    }
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    downloadStatus.textContent = 'File downloaded successfully!';
+  } catch (error) {
+    console.error('Error downloading file:', error);
+    downloadStatus.textContent = 'Error downloading file. Check the console for details.';
   }
 });
