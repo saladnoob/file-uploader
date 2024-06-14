@@ -52,4 +52,44 @@ exports.handler = async (event) => {
         headers: {
           'Access-Control-Allow-Origin': '*',
         },
-        body: 'No fil
+        body: 'No file uploaded',
+      };
+    }
+
+    const file = files.file;
+    console.log('Uploaded File:', JSON.stringify(file)); // Log file details
+    const sanitizedFilename = file.originalFilename.replace(/[^\w.-]+/g, '_');
+    const filePath = path.join(uploadDir, sanitizedFilename);
+
+    if (file.size > 10 * 1024 * 1024) {
+      console.log('File size exceeds limit');
+      return {
+        statusCode: 413,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+        },
+        body: 'File size exceeds limit (10 MB)',
+      };
+    }
+
+    await fs.rename(file.filepath, filePath);
+    console.log('File saved to', filePath);
+
+    return {
+      statusCode: 200,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+      },
+      body: JSON.stringify({ message: 'File uploaded successfully!' }),
+    };
+  } catch (error) {
+    console.error('Error uploading file:', error);
+    return {
+      statusCode: 500,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+      },
+      body: 'Internal Server Error',
+    };
+  }
+};
